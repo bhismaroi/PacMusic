@@ -1,0 +1,27 @@
+name: Push to Container Registry 🛒
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  push-to-dockerhub:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Login to DockerHub
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      - name: Setup docker buildx
+        run: |
+          docker buildx create --use
+          docker buildx inspect --bootstrap
+
+      - name: Build and push Docker images
+        run: |
+          TAG=$(echo "${GITHUB_REF}" | sed -e 's,.*/\(.*\),\1,')
+          docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/pacmusic:${TAG} -t ${{ secrets.DOCKERHUB_USERNAME }}/pacmusic:latest .
