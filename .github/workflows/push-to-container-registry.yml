@@ -23,5 +23,5 @@ jobs:
         run: |
           IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/pacmusic"
           TAG="${GITHUB_REF##*/}"
-          docker buildx build --platform linux/amd64 --push -t $IMAGE_NAME:$TAG -t $IMAGE_NAME:latest .
-          # Replace "." with the path to your Dockerfile if it's located in a subdirectory
+          docker buildx build --platform linux/amd64 --push -t $IMAGE_NAME:$TAG -t $IMAGE_NAME:latest ./app
+          # Specify "./app" as the path to your Dockerfile directory
