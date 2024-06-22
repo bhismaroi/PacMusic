@@ -6,22 +6,21 @@ on:
       - '*'
 
 jobs:
-  push-to-dockerhub:
+  push-image:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Login to DockerHub
-        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+      - name: Log in to DockerHub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Setup docker buildx
-        run: |
-          docker buildx create --use
-          docker buildx inspect --bootstrap
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Build and push Docker images
+      - name: Build and push Docker image
         run: |
-          TAG=$(echo "${GITHUB_REF}" | sed -e 's,.*/\(.*\),\1,')
-          docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/pacmusic:${TAG} -t ${{ secrets.DOCKERHUB_USERNAME }}/pacmusic:latest .
+          IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/pacmusic"
+          TAG="${GITHUB_REF##*/}"
+          docker buildx build --platform linux/amd64 --push -t $IMAGE_NAME:$TAG -t $IMAGE_NAME:latest .
