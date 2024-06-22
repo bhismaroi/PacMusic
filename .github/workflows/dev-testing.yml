@@ -23,8 +23,9 @@ jobs:
         run: |
           sudo docker-compose -f docker-compose.yaml up --build -d pacmusic-dev
 
-      - name: Sleep to allow services to start
-        run: sleep 10
+      - name: Wait for services to start
+        run: |
+          timeout 30s bash -c 'until curl -sSf http://localhost:5000; do sleep 5; done'
 
       - name: Test hit endpoint
         run: curl http://localhost:5000
