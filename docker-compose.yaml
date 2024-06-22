@@ -58,4 +58,3 @@ volumes:
 
 #STAGING PORT    http://16.78.105.160:5001
 #PROD PORT       http://16.78.105.160:5000
-#docker token    dckr_pat_mro7WMWQHTInpwZrois4UUVmfFM
