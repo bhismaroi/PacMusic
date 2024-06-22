@@ -54,7 +54,3 @@ volumes:
   minio-dev-vol:
     driver: local
     name: minio-dev-vol
-
-
-#STAGING PORT    http://16.78.105.160:5001
-#PROD PORT       http://16.78.105.160:5000

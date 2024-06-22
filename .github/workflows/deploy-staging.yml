@@ -14,21 +14,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Run deployment script on staging server
-        uses: appleboy/ssh-action@v0.1.6
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.5.4
         with:
-          host: ${{ secrets.SSH_HOST_STAGING }}
-          username: ${{ secrets.SSH_USER_NAME_STAGING }}
-          key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
-          script: |
-            #!/bin/bash
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
+
+      - name: Run deployment script on staging server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << 'EOF'
             APP_STG_PATH="/home/ubuntu/staging"
             if [ -d "$APP_STG_PATH" ]; then
               cd $APP_STG_PATH
               sudo docker compose down pacmusic-stg
               git pull origin main
             else
-              ssh-keyscan github.com > ~/known_hosts
+              ssh-keyscan github.com >> ~/.ssh/known_hosts
               git clone ${{ secrets.GIT_URL }} $APP_STG_PATH
               cd $APP_STG_PATH
             fi
@@ -41,8 +41,9 @@ jobs:
 
             # Start the application
             sudo docker compose up --build --detach pacmusic-stg
+          EOF
 
       - name: Test Hit Endpoint
         run: |
           sleep 10
-          curl http://localhost:${{ secrets.APP_STG_PORT }}
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl http://localhost:${{ secrets.APP_STG_PORT }}"
