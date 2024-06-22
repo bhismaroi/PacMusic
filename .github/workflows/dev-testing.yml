@@ -8,7 +8,6 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    environment: dev-testing
 
     steps:
       - name: Checkout repository
@@ -16,12 +15,13 @@ jobs:
 
       - name: Set up .env file
         run: |
-          echo "MINIO_DEV_ENDPOINT=${{ secrets.MINIO_DEV_ENDPOINT }}" >> .env
+          echo "MINIO_DEV_ENDPOINT=${{ secrets.MINIO_DEV_ENDPOINT }}" > .env
           echo "MINIO_DEV_ACCESS_KEY=${{ secrets.MINIO_DEV_ACCESS_KEY }}" >> .env
           echo "MINIO_DEV_SECRET_KEY=${{ secrets.MINIO_DEV_SECRET_KEY }}" >> .env
 
       - name: Build and run Docker Compose
-        run: sudo docker compose up --build --detach pacmusic-dev
+        run: |
+          sudo docker-compose -f docker-compose.yaml up --build -d pacmusic-dev
 
       - name: Sleep to allow services to start
         run: sleep 10
