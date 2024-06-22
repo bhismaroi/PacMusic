@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    environment: dev-testing
 
     steps:
       - name: Checkout repository
@@ -21,11 +22,10 @@ jobs:
 
       - name: Build and run Docker Compose
         run: |
-          sudo docker-compose -f docker-compose.yaml up --build -d pacmusic-dev
+         sudo docker compose up --build --detach pacmusic-dev
 
-      - name: Wait for services to start
-        run: |
-          timeout 30s bash -c 'until curl -sSf http://localhost:5000; do sleep 5; done'
+      - name: Sleep to allow services to start
+        run: sleep 10
 
       - name: Test hit endpoint
         run: curl http://localhost:5000
