@@ -11,6 +11,9 @@ jobs:
     environment: staging
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -19,7 +22,6 @@ jobs:
       - name: Run deployment script on staging server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << 'EOF'
-            #!/bin/bash
             APP_STG_PATH="/home/ubuntu/staging"
             if [ -d "$APP_STG_PATH" ]; then
               cd $APP_STG_PATH
