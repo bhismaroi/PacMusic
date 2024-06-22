@@ -20,13 +20,24 @@ jobs:
 
       - name: Prepare deployment
         run: |
+          # Debugging: Print SSH key for verification
+          echo "SSH private key:"
+          echo "${{ secrets.SSH_PRIVATE_KEY_PRODUCTION }}" | head -n 1  # Ensure only first line is printed for security
+
+          # Ensure known hosts are correctly configured
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+          # Debugging: Test SSH connection
+          ssh -T git@github.com || true  # Use "git" as SSH user if applicable
+
+          # Prepare deployment
           APP_PROD_PATH="/home/ubuntu/production"
           if [ -d "$APP_PROD_PATH" ]; then
             cd $APP_PROD_PATH
             sudo docker compose down pacmusic-prod
             git pull origin main
           else
-            ssh-keyscan github.com >> ~/.ssh/known_hosts
             git clone ${{ secrets.GIT_URL }} $APP_PROD_PATH
             cd $APP_PROD_PATH
           fi
