@@ -58,4 +58,3 @@ jobs:
         run: |
           sleep 30  # Wait for services to be ready
           curl http://localhost:${{ secrets.APP_PROD_PORT }}
-          #
