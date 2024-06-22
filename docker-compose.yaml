@@ -54,3 +54,6 @@ volumes:
   minio-dev-vol:
     driver: local
     name: minio-dev-vol
+
+#  SSH HOST STAGING     http://16.78.105.160:5001
+#  SSH HOST PRODUCTION  http://16.78.105.160:5000
