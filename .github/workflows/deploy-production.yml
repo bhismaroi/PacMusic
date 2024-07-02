@@ -31,11 +31,15 @@ jobs:
           # Debugging: Test SSH connection
           ssh -T git@github.com || true  # Use "git" as SSH user if applicable
 
+          # Ensure directory permissions are correct
+          sudo chown -R $USER:$USER /home/ubuntu/production || true
+          sudo chmod -R 755 /home/ubuntu/production || true
+
           # Prepare deployment
           APP_PROD_PATH="/home/ubuntu/production"
           if [ -d "$APP_PROD_PATH" ]; then
             cd $APP_PROD_PATH
-            sudo docker compose down pacmusic-prod
+            docker compose down pacmusic-prod  # Assuming the Docker Compose file is named 'docker-compose.yml'
             git pull origin main
           else
             git clone ${{ secrets.GIT_URL }} $APP_PROD_PATH
@@ -52,7 +56,7 @@ jobs:
           echo "MINIO_PROD_SECRET_KEY=${{ secrets.MINIO_PROD_SECRET_KEY }}" >> .env
 
       - name: Start Docker Compose for production
-        run: sudo docker compose up --build --detach pacmusic-prod
+        run: docker compose up --build --detach pacmusic-prod
 
       - name: Test Hit Endpoint
         run: |
