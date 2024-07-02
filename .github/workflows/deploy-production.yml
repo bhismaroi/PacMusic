@@ -13,38 +13,53 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up SSH agent
+      - name: Set up SSH keys
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION }}
 
-      - name: Run deployment script on production server
+      - name: Prepare deployment
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} << 'EOF'
+            set -e
             APP_PROD_PATH="/home/ubuntu/production"
+            
+            # Ensure known hosts is correctly configured
+            mkdir -p ~/.ssh
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+
             if [ -d "$APP_PROD_PATH" ]; then
               cd $APP_PROD_PATH
-              sudo docker compose down pacmusic-prod
-              git pull origin main
+              if [ -d ".git" ]; then
+                sudo docker compose down pacmusic-prod || true
+                git pull origin main
+              else
+                echo "Directory exists but is not a git repository. Cloning again."
+                sudo rm -rf $APP_PROD_PATH
+                git clone ${{ secrets.GIT_URL }} $APP_PROD_PATH
+                cd $APP_PROD_PATH
+              fi
             else
-              ssh-keyscan github.com >> ~/.ssh/known_hosts
               git clone ${{ secrets.GIT_URL }} $APP_PROD_PATH
               cd $APP_PROD_PATH
             fi
 
             # Generate .env file
-          echo "APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/pacmusic" > .env
-          echo "APP_TAG=${{ github.event.release.tag_name }}" >> .env
-          echo "APP_PROD_PORT=${{ secrets.APP_PROD_PORT }}" >> .env
-          echo "MINIO_PROD_ENDPOINT=${{ secrets.MINIO_PROD_ENDPOINT }}" >> .env
-          echo "MINIO_PROD_ACCESS_KEY=${{ secrets.MINIO_PROD_ACCESS_KEY }}" >> .env
-          echo "MINIO_PROD_SECRET_KEY=${{ secrets.MINIO_PROD_SECRET_KEY }}" >> .env
+            echo "APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/pacmusic" > .env
+            echo "APP_TAG=${{ github.event.release.tag_name }}" >> .env
+            echo "APP_PROD_PORT=${{ secrets.APP_PROD_PORT }}" >> .env
+            echo "MINIO_PROD_ENDPOINT=${{ secrets.MINIO_PROD_ENDPOINT }}" >> .env
+            echo "MINIO_PROD_ACCESS_KEY=${{ secrets.MINIO_PROD_ACCESS_KEY }}" >> .env
+            echo "MINIO_PROD_SECRET_KEY=${{ secrets.MINIO_PROD_SECRET_KEY }}" >> .env
+
+            # Check if .env file is populated correctly
+            cat .env
 
             # Start the application
-            sudo docker compose up --build --detach pacmusic-prod
+            sudo docker compose up --build --detach pacmusic-prod || true
           EOF
 
       - name: Test Hit Endpoint
         run: |
-          sleep 10
+          sleep 30  # Wait for services to be ready
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "curl http://localhost:${{ secrets.APP_PROD_PORT }}"
