@@ -39,6 +39,7 @@ jobs:
               cd $APP_PROD_PATH
               if [ -d ".git" ]; then
                 sudo docker compose down pacmusic-prod || true
+                echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
                 git pull origin main
               else
                 echo "Directory exists but is not a git repository. Cloning again."
