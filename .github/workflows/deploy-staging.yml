@@ -23,10 +23,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << 'EOF'
             APP_STG_PATH="/home/ubuntu/staging"
-            if [ -d "$APP_STG_PATH" ]; then
+            if [ -d "$APP_STG_PATH/.git" ]; then
               cd $APP_STG_PATH
-              if [ -d ".git" ]; then
-              sudo docker compose down || true
+              sudo docker-compose down || true
               git pull origin main
             else
               ssh-keyscan github.com >> ~/.ssh/known_hosts
