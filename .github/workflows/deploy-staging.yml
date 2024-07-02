@@ -25,7 +25,7 @@ jobs:
             APP_STG_PATH="/home/ubuntu/staging"
             if [ -d "$APP_STG_PATH" ]; then
               cd $APP_STG_PATH
-              sudo docker-compose down || true
+              sudo docker compose down || true
               git pull origin main
             else
               ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -41,7 +41,7 @@ jobs:
             echo "APP_STG_PORT_2=${{ secrets.APP_STG_PORT_2 }}" >> .env
 
             # Start the application using Docker Compose
-            sudo docker-compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
+            sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
           EOF
 
       - name: Test Endpoint 1
