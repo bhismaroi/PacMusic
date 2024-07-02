@@ -10,6 +10,9 @@ jobs:
     environment: production
 
     steps:
+      - name: Delay to ensure sufficient time after release
+        run: sleep 30
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -17,6 +20,10 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION }}
+
+      - name: Docker Hub Login
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Prepare deployment
         run: |
