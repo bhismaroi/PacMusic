@@ -22,7 +22,7 @@ jobs:
 
       - name: Build and run Docker Compose
         run: |
-         sudo docker compose up --build --detach pacmusic-dev
+          sudo docker compose -f ./docker-compose.yml up --build --detach pacmusic-dev
 
       - name: Sleep to allow services to start
         run: sleep 10

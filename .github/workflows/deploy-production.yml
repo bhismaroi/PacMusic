@@ -40,7 +40,7 @@ jobs:
             if [ -d "$APP_PROD_PATH" ]; then
               cd $APP_PROD_PATH
               if [ -d ".git" ]; then
-                sudo docker compose down pacmusic-prod || true
+                sudo docker compose down || true
                 git pull origin main
               else
                 echo "Directory exists but is not a git repository. Cloning again."
@@ -56,7 +56,8 @@ jobs:
             # Generate .env file
             echo "APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/pacmusic" > .env
             echo "APP_TAG=${{ github.event.release.tag_name }}" >> .env
-            echo "APP_PROD_PORT=${{ secrets.APP_PROD_PORT }}" >> .env
+            echo "APP_PROD_PORT_1=${{ secrets.APP_PROD_PORT_1 }}" >> .env
+            echo "APP_PROD_PORT_2=${{ secrets.APP_PROD_PORT_2 }}" >> .env
             echo "MINIO_PROD_ENDPOINT=${{ secrets.MINIO_PROD_ENDPOINT }}" >> .env
             echo "MINIO_PROD_ACCESS_KEY=${{ secrets.MINIO_PROD_ACCESS_KEY }}" >> .env
             echo "MINIO_PROD_SECRET_KEY=${{ secrets.MINIO_PROD_SECRET_KEY }}" >> .env
@@ -65,10 +66,11 @@ jobs:
             cat .env
 
             # Start the application
-            sudo docker compose up --build --detach pacmusic-prod || true
+            sudo docker compose up --build --detach pacmusic-prod-1 pacmusic-prod-2 || true
           EOF
 
       - name: Test Hit Endpoint
         run: |
           sleep 30  # Wait for services to be ready
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "curl http://localhost:${{ secrets.APP_PROD_PORT }}"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "curl http://localhost:${{ secrets.APP_PROD_PORT_1 }}"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "curl http://localhost:${{ secrets.APP_PROD_PORT_2 }}"
