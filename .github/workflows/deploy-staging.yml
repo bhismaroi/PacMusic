@@ -19,13 +19,13 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
 
-      - name: Run deployment script on staging server
+      - name: Deploy to Staging Server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << 'EOF'
             APP_STG_PATH="/home/ubuntu/staging"
             if [ -d "$APP_STG_PATH" ]; then
               cd $APP_STG_PATH
-              sudo docker compose down || true
+              sudo docker-compose down || true
               git pull origin main
             else
               ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -34,18 +34,22 @@ jobs:
             fi
 
             # Generate .env file
-            echo "APP_STG_PORT_1=${{ secrets.APP_STG_PORT_1 }}" >> .env
-            echo "APP_STG_PORT_2=${{ secrets.APP_STG_PORT_2 }}" >> .env
             echo "MINIO_STG_ENDPOINT=${{ secrets.MINIO_STG_ENDPOINT }}" > .env
             echo "MINIO_STG_ACCESS_KEY=${{ secrets.MINIO_STG_ACCESS_KEY }}" >> .env
             echo "MINIO_STG_SECRET_KEY=${{ secrets.MINIO_STG_SECRET_KEY }}" >> .env
-            
+            echo "APP_STG_PORT_1=${{ secrets.APP_STG_PORT_1 }}" >> .env
+            echo "APP_STG_PORT_2=${{ secrets.APP_STG_PORT_2 }}" >> .env
+
             # Start the application using Docker Compose
-            sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
+            sudo docker-compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
           EOF
 
-      - name: Test Hit Endpoint
+      - name: Test Endpoint 1
         run: |
           sleep 10
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl http://localhost:${{ secrets.APP_STG_PORT_1 }}"
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl http://localhost:${{ secrets.APP_STG_PORT_2 }}"
+          curl http://localhost:${{ secrets.APP_STG_PORT_1 }}
+
+      - name: Test Endpoint 2
+        run: |
+          sleep 10
+          curl http://localhost:${{ secrets.APP_STG_PORT_2 }}
