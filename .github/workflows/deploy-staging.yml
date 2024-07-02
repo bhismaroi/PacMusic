@@ -23,9 +23,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << 'EOF'
             APP_STG_PATH="/home/ubuntu/staging"
-            if [ -d "$APP_STG_PATH/.git" ]; then
+            if [ -d "$APP_STG_PATH" ]; then
               cd $APP_STG_PATH
-              sudo docker-compose down || true
+              sudo docker compose down pacmusic-stg
               git pull origin main
             else
               ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -34,18 +34,16 @@ jobs:
             fi
 
             # Generate .env file
-            echo "MINIO_STG_ENDPOINT=${{ secrets.MINIO_STG_ENDPOINT }}" > .env
+            echo "APP_STG_PORT=${{ secrets.APP_STG_PORT }}" > .env
+            echo "MINIO_STG_ENDPOINT=${{ secrets.MINIO_STG_ENDPOINT }}" >> .env
             echo "MINIO_STG_ACCESS_KEY=${{ secrets.MINIO_STG_ACCESS_KEY }}" >> .env
             echo "MINIO_STG_SECRET_KEY=${{ secrets.MINIO_STG_SECRET_KEY }}" >> .env
-            echo "APP_STG_PORT_1=${{ secrets.APP_STG_PORT_1 }}" >> .env
-            echo "APP_STG_PORT_2=${{ secrets.APP_STG_PORT_2 }}" >> .env
 
-            # Start the application using Docker Compose
-            sudo docker-compose up --build --detach pacmusic-stg-1 pacmusic-stg-2
+            # Start the application
+            sudo docker compose up --build --detach pacmusic-stg
           EOF
 
       - name: Test Hit Endpoint
         run: |
           sleep 10
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl http://localhost:${{ secrets.APP_STG_PORT_1 }}"
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl http://localhost:${{ secrets.APP_STG_PORT_2 }}"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl http://localhost:${{ secrets.APP_STG_PORT }}"
