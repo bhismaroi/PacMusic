@@ -1,8 +1,7 @@
 version: '3'
 
 services:
-
-# DEV
+  # DEV
   pacmusic-dev:
     build:
       context: ./app
@@ -17,7 +16,7 @@ services:
     networks:
       - pacmusic-network
 
-# STG
+  # STG
   pacmusic-stg-1:
     build:
       context: ./app
@@ -46,7 +45,7 @@ services:
     networks:
       - pacmusic-network
 
-# PROD
+  # PROD
   pacmusic-prod-1:
     image: "${APP_IMAGE}:${APP_TAG}"
     container_name: pacmusic-prod-1
@@ -68,6 +67,33 @@ services:
       MINIO_SECRET_KEY: ${MINIO_PROD_SECRET_KEY}
     ports:
       - ${APP_PROD_PORT_2}:5000
+    networks:
+      - pacmusic-network
+
+  # Nginx reverse proxy and load balancing
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/letsencrypt:/etc/letsencrypt
+      - ./nginx/www:/var/www/certbot
+    networks:
+      - pacmusic-network
+
+  # Certbot for SSL certificates
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/letsencrypt:/etc/letsencrypt
+      - ./nginx/www:/var/www/certbot
+    entrypoint: /bin/sh -c 'trap exit TERM; while :; do sleep 6h & wait $${!}; certbot renew; done;'
     networks:
       - pacmusic-network
 
