@@ -47,11 +47,11 @@ jobs:
             fi
 
             # Generate .env file
-            echo "APP_STG_PORT_1=${{ secrets.APP_STG_PORT_1 }}" > .env
-            echo "APP_STG_PORT_2=${{ secrets.APP_STG_PORT_2 }}" >> .env
             echo "MINIO_STG_ENDPOINT=${{ secrets.MINIO_STG_ENDPOINT }}" >> .env
             echo "MINIO_STG_ACCESS_KEY=${{ secrets.MINIO_STG_ACCESS_KEY }}" >> .env
             echo "MINIO_STG_SECRET_KEY=${{ secrets.MINIO_STG_SECRET_KEY }}" >> .env
+            echo "APP_STG_PORT_1=${{ secrets.APP_STG_PORT_1 }}" > .env
+            echo "APP_STG_PORT_2=${{ secrets.APP_STG_PORT_2 }}" >> .env
 
             # Check if .env file is populated correctly
             cat .env
@@ -62,10 +62,10 @@ jobs:
 
       - name: Test Endpoint 1
         run: |
-          sleep 10
+          sleep 30
           curl http://localhost:${{ secrets.APP_STG_PORT_1 }}
 
       - name: Test Endpoint 2
         run: |
-          sleep 10
+          sleep 30
           curl http://localhost:${{ secrets.APP_STG_PORT_2 }}
