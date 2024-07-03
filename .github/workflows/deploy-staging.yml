@@ -33,7 +33,7 @@ jobs:
               cd $APP_STG_PATH
               if [ -d ".git" ]; then
                 sudo docker compose down || true
-                git config pull.ff only
+                git rebase
                 git pull origin main
               else
                 echo "Directory exists but is not a git repository. Cloning again."
