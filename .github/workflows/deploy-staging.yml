@@ -18,9 +18,10 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
+
       - name: Deploy to Staging Server
         run: |
-           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << EOF
             set -e
             APP_STG_PATH="/home/ubuntu/staging"
             
@@ -45,7 +46,7 @@ jobs:
             fi
 
             # Generate .env file
-            echo "APP_STG_PORT_1=${{ secrets.APP_STG_PORT_1 }}" >> .env
+            echo "APP_STG_PORT_1=${{ secrets.APP_STG_PORT_1 }}" > .env
             echo "APP_STG_PORT_2=${{ secrets.APP_STG_PORT_2 }}" >> .env
             echo "MINIO_STG_ENDPOINT=${{ secrets.MINIO_STG_ENDPOINT }}" >> .env
             echo "MINIO_STG_ACCESS_KEY=${{ secrets.MINIO_STG_ACCESS_KEY }}" >> .env
@@ -56,7 +57,7 @@ jobs:
 
             # Start the application
             sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
-          EOF
+EOF
 
       - name: Test Endpoint 1
         run: |
