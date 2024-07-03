@@ -69,20 +69,6 @@ services:
     networks:
       - pacmusic-network
 
-    # Nginx reverse proxy and load balancing
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/ssl:/etc/nginx/ssl
-      - ./nginx/www:/var/www/certbot
-    networks:
-      - pacmusic-network
-
 networks:
   pacmusic-network:
     driver: bridge
