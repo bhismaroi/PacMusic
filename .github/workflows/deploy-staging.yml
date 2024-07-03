@@ -21,26 +21,41 @@ jobs:
 
       - name: Deploy to Staging Server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << 'EOF'
+           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << 'EOF'
+            set -e
             APP_STG_PATH="/home/ubuntu/staging"
+            
+            # Ensure known hosts is correctly configured
+            mkdir -p ~/.ssh
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+
             if [ -d "$APP_STG_PATH" ]; then
               cd $APP_STG_PATH
-              sudo docker compose down || true
-              git pull origin main
+              if [ -d ".git" ]; then
+                sudo docker compose down || true
+                git pull origin main
+              else
+                echo "Directory exists but is not a git repository. Cloning again."
+                sudo rm -rf $APP_STG_PATH
+                git clone ${{ secrets.GIT_URL }} $APP_STG_PATH
+                cd $APP_STG_PATH
+              fi
             else
-              ssh-keyscan github.com >> ~/.ssh/known_hosts
               git clone ${{ secrets.GIT_URL }} $APP_STG_PATH
               cd $APP_STG_PATH
             fi
 
             # Generate .env file
-            echo "MINIO_STG_ENDPOINT=${{ secrets.MINIO_STG_ENDPOINT }}" > .env
-            echo "MINIO_STG_ACCESS_KEY=${{ secrets.MINIO_STG_ACCESS_KEY }}" >> .env
-            echo "MINIO_STG_SECRET_KEY=${{ secrets.MINIO_STG_SECRET_KEY }}" >> .env
             echo "APP_STG_PORT_1=${{ secrets.APP_STG_PORT_1 }}" >> .env
             echo "APP_STG_PORT_2=${{ secrets.APP_STG_PORT_2 }}" >> .env
+            echo "MINIO_STG_ENDPOINT=${{ secrets.MINIO_STG_ENDPOINT }}" >> .env
+            echo "MINIO_STG_ACCESS_KEY=${{ secrets.MINIO_STG_ACCESS_KEY }}" >> .env
+            echo "MINIO_STG_SECRET_KEY=${{ secrets.MINIO_STG_SECRET_KEY }}" >> .env
 
-            # Start the application using Docker Compose
+            # Check if .env file is populated correctly
+            cat .env
+
+            # Start the application
             sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
           EOF
 
