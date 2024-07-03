@@ -21,7 +21,7 @@ jobs:
 
       - name: Deploy to Staging Server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << EOF
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << 'EOF'
             set -e
             APP_STG_PATH="/home/ubuntu/staging"
             
@@ -57,7 +57,7 @@ jobs:
 
             # Start the application
             sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
-EOF
+          EOF
 
       - name: Test Endpoint 1
         run: |
