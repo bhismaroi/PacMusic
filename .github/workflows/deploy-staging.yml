@@ -57,13 +57,7 @@ jobs:
             cat .env
 
             # Start the application
-            sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 nginx || true
-
-            # Obtain SSL certificates with Certbot
-            sudo docker compose run --rm certbot certonly --webroot --webroot-path=/var/www/certbot --email bhismaroi@gmail.com --agree-tos --no-eff-email -d bhismaroi.site -d stg.bhismaroi.site
-
-            # Restart Nginx to apply certificates
-            sudo docker restart nginx
+            sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
           EOF
 
       - name: Test Hit Endpoint 1
