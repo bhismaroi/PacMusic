@@ -41,7 +41,8 @@ jobs:
               cd $APP_PROD_PATH
               if [ -d ".git" ]; then
                 sudo docker compose down || true
-                git pull origin main
+                git fetch origin main
+                git merge FETCH_HEAD || true
               else
                 echo "Directory exists but is not a git repository. Cloning again."
                 sudo rm -rf $APP_PROD_PATH
