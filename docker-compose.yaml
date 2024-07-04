@@ -69,27 +69,27 @@ services:
     networks:
       - pacmusic-network
 
-     # Nginx reverse proxy and load balancing
+# Nginx reverse proxy and load balancing
+  services:
   nginx:
-    image: nginx:latest
+    image: nginx:stable-alpine
     container_name: nginx
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80
+      - 443:443
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/ssl:/etc/nginx/ssl
-      - ./nginx/www:/var/www/certbot
-    networks:
-      - pacmusic-network
+      - ./data/certbot:/etc/letsencrypt
+      - ./data/www:/var/www/html
+    restart: always
 
-  # Certbot service
   certbot:
     image: certbot/certbot
     container_name: certbot
     volumes:
-      - ./nginx/www:/var/www/certbot
-      - ./nginx/ssl:/etc/letsencrypt
+      - ./data/certbot:/etc/letsencrypt
+      - ./data/www:/var/www/html
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 networks:
   pacmusic-network:
