@@ -63,9 +63,11 @@ jobs:
       - name: Test Hit Endpoint 1
         run: |
           sleep 15
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl http://localhost:${{ secrets.APP_STG_PORT_1 }}"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl https://stg.bhismaroi.site" # Assuming stg.bhismaroi.site is your staging domain
 
-      - name: Test Hit Endpoint 2
-        run: |
-          sleep 15
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl http://localhost:${{ secrets.APP_STG_PORT_2 }}"
+# Test Hit Endpoint 2 (Not necessary since Nginx is the entrypoint)
+
+    #  - name: Test Hit Endpoint 2
+     #   run: |
+      #    sleep 15
+       #   ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl http://localhost:${{ secrets.APP_STG_PORT_2 }}"
