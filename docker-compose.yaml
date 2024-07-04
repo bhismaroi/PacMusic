@@ -80,7 +80,7 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./data/certbot:/etc/letsencrypt
       - ./data/www:/var/www/html
-    restart: always
+    restart: on-failure
 
   certbot:
     image: certbot/certbot
