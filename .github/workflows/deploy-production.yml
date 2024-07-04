@@ -10,23 +10,61 @@ jobs:
     environment: production
 
     steps:
-      # ... (Delay, checkout, and SSH setup steps remain the same)
+      - name: Delay to ensure sufficient time after release
+        run: sleep 30
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up SSH keys
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
+          
       - name: Prepare deployment
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} << 'EOF'
             set -e
             APP_PROD_PATH="/home/ubuntu/production"
-
+            
             # Ensure known hosts is correctly configured
             mkdir -p ~/.ssh
             ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+            if [ -d "$APP_PROD_PATH" ]; then
+              cd $APP_PROD_PATH
+              if [ -d ".git" ]; then
+                sudo docker compose down || true
+                git fetch origin main
+                git merge FETCH_HEAD || true
+              else
+                echo "Directory exists but is not a git repository. Cloning again."
+                sudo rm -rf $APP_PROD_PATH
+                git clone ${{ secrets.GIT_URL }} $APP_PROD_PATH
+                cd $APP_PROD_PATH
+              fi
+            else
+              git clone ${{ secrets.GIT_URL }} $APP_PROD_PATH
+              cd $APP_PROD_PATH
+            fi
+
+            # Generate .env file
+            echo "APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/pacmusic" > .env
+            echo "APP_TAG=${{ github.event.release.tag_name }}" >> .env
+            echo "APP_PROD_PORT_1=${{ secrets.APP_PROD_PORT_1 }}" >> .env
+            echo "APP_PROD_PORT_2=${{ secrets.APP_PROD_PORT_2 }}" >> .env
+            echo "MINIO_PROD_ENDPOINT=${{ secrets.MINIO_PROD_ENDPOINT }}" >> .env
+            echo "MINIO_PROD_ACCESS_KEY=${{ secrets.MINIO_PROD_ACCESS_KEY }}" >> .env
+            echo "MINIO_PROD_SECRET_KEY=${{ secrets.MINIO_PROD_SECRET_KEY }}" >> .env
+
+            # Check if .env file is populated correctly
+            cat .env
 
             # Pull the latest image (adjust image name and tag)
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pacmusic:${{ github.event.release.tag_name }}
