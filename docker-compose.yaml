@@ -70,7 +70,6 @@ services:
       - pacmusic-network
 
 # Nginx reverse proxy and load balancing
-  services:
   nginx:
     image: nginx:stable-alpine
     container_name: nginx
