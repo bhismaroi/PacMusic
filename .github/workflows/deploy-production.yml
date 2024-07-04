@@ -70,8 +70,8 @@ jobs:
             sudo docker compose up --build --detach pacmusic-prod-1 pacmusic-prod-2 || true
           EOF
 
-      - name: Test Hit Endpoint
-        run: |
-          sleep 30  # Wait for services to be ready
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "curl http://localhost:${{ secrets.APP_PROD_PORT_1 }}"
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "curl http://localhost:${{ secrets.APP_PROD_PORT_2 }}"
+          - name: Test Hit Endpoint 1
+          run: |
+            sleep 15
+            ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "curl https://bhismaroi.site" 
+           # ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "curl http://localhost:${{ secrets.APP_PROD_PORT_2 }}"
