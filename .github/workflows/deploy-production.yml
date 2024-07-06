@@ -76,4 +76,4 @@ jobs:
       - name: Test Hit Endpoint (Using production domain)
         run: |
           sleep 30  # Wait for services to be ready
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "curl https://bhismaroi.site"
+          curl ${{ secrets.PROD_URL }}
