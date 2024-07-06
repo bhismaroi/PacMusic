@@ -32,7 +32,7 @@ jobs:
             if [ -d "$APP_STG_PATH" ]; then
               cd $APP_STG_PATH
               if [ -d ".git" ]; then
-                sudo docker compose down || true
+                sudo docker compose down pacmusic-stg-1 pacmusic-stg-2 || true
                 git fetch origin main
                 git merge FETCH_HEAD || true
               else
@@ -57,7 +57,7 @@ jobs:
             cat .env
 
             # Start the application
-            sudo docker compose up --build --detach nginx certbot pacmusic-stg-1 pacmusic-stg-2 || true
+             sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
           EOF
 
       - name: Test Hit Endpoint 1
