@@ -64,7 +64,7 @@ jobs:
         run: |
           sleep 15
           curl ${{ secrets.STG_URL }}
-#          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl https://stg.bhismaroi.site"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl https://stg.bhismaroi.site"
 # Test Hit Endpoint 2 (Not necessary since Nginx is the entrypoint)
 
     #  - name: Test Hit Endpoint 2
