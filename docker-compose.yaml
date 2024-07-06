@@ -83,7 +83,6 @@ services:
     network_mode: host
     depends_on:
       - certbot
-    restart: unless-stopped
 
   certbot:
     image: certbot/certbot
