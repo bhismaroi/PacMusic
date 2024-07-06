@@ -2,72 +2,52 @@ name: Deploy Staging 🚀
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
-  deploy-to-staging:
-    runs-on: ubuntu-latest
+  deploy-staging:
+    name: Deploy to staging server
     environment: staging
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Execute deployment command
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          APP_STG_PATH: ${{ vars.APP_STG_PATH }}
+          GIT_URL: ${{ secrets.GIT_URL }}
+          MINIO_STG_ENDPOINT: ${{ secrets.MINIO_STG_ENDPOINT }}
+          MINIO_STG_ACCESS_KEY: ${{ secrets.MINIO_STG_ACCESS_KEY }}
+          MINIO_STG_SECRET_KEY: ${{ secrets.MINIO_STG_SECRET_KEY }}
+          APP_STG_PORT: ${{ secrets.APP_STG_PORT }}
 
-      - name: Set up SSH agent
-        uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
+          host: ${{ secrets.SSH_HOST_STAGING }}
+          username: ${{ secrets.SSH_USER_NAME_STAGING }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
+          envs: APP_STG_PATH, GIT_URL, MINIO_STG_ENDPOINT, MINIO_STG_ACCESS_KEY, MINIO_STG_SECRET_KEY, APP_STG_PORT
+          script: |
 
-      - name: Run deployment script on staging server
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} << 'EOF'
-            set -e
-            APP_STG_PATH="/home/ubuntu/staging"
-            
-            # Ensure known hosts is correctly configured
-            mkdir -p ~/.ssh
-            ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-            if [ -d "$APP_STG_PATH" ]; then
+            if [[ -d "${APP_STG_PATH}" ]]; then 
               cd $APP_STG_PATH
-              if [ -d ".git" ]; then
-                sudo docker compose down pacmusic-stg-1 pacmusic-stg-2 || true
-                git fetch origin main
-                git merge FETCH_HEAD || true
-              else
-                echo "Directory exists but is not a git repository. Cloning again."
-                sudo rm -rf $APP_STG_PATH
-                git clone ${{ secrets.GIT_URL }} $APP_STG_PATH
-                cd $APP_STG_PATH
-              fi
+              sudo docker compose down
+              git pull --rebase
             else
-              git clone ${{ secrets.GIT_URL }} $APP_STG_PATH
+              ssh-keyscan github.com > ~/.ssh/known_hosts
+              git clone $GIT_URL $APP_STG_PATH
               cd $APP_STG_PATH
             fi
 
-            # Generate .env file
-            echo "APP_STG_PORT_1=${{ secrets.APP_STG_PORT_1 }}" > .env
-            echo "APP_STG_PORT_2=${{ secrets.APP_STG_PORT_2 }}" >> .env
-            echo "MINIO_STG_ENDPOINT=${{ secrets.MINIO_STG_ENDPOINT }}" >> .env
-            echo "MINIO_STG_ACCESS_KEY=${{ secrets.MINIO_STG_ACCESS_KEY }}" >> .env
-            echo "MINIO_STG_SECRET_KEY=${{ secrets.MINIO_STG_SECRET_KEY }}" >> .env
+            # If there are any envars update
+            echo "MINIO_STG_ENDPOINT=$MINIO_STG_ENDPOINT" > .env
+            echo "MINIO_STG_ACCESS_KEY=$MINIO_STG_ACCESS_KEY" >> .env
+            echo "MINIO_STG_SECRET_KEY=$MINIO_STG_SECRET_KEY" >> .env
+            echo "APP_STG_PORT=$APP_STG_PORT" >> .env
 
-            # Check if .env file is populated correctly
-            cat .env
-
-            # Start the application
-             sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
-          EOF
-
-      - name: Test Hit Endpoint 1
+            # Run app
+            sudo docker compose up --build --detach pacmusic-stg
+      
+      - name: Hit Endpoint
         run: |
-          sleep 15
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl https://stg.bhismaroi.site"
-#          curl ${{ secrets.STG_URL }}
-# Test Hit Endpoint 2 (Not necessary since Nginx is the entrypoint)
-
-    #  - name: Test Hit Endpoint 2
-     #   run: |
-      #    sleep 15
-       #   ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl http://localhost:${{ secrets.APP_STG_PORT_2 }}"
+          sleep 10
+          curl ${{ secrets.STG_URL }}
