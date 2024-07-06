@@ -1,15 +1,15 @@
 #server {
  #   listen 80;
- #   server_name staging.bhismaroi.site;
+ #   server_name stg.bhismaroi.site;
     return 301 https://$host$request_uri;
 #}
 #
 #server {
  #   listen 443 ssl;
- #   server_name staging.bhismaroi.site;
+ #   server_name stg.bhismaroi.site;
 #
- #   ssl_certificate /etc/letsencrypt/live/staging.bhismaroi.site/fullchain.pem;
- #   ssl_certificate_key /etc/letsencrypt/live/staging.bhismaroi.site/privkey.pem;
+ #   ssl_certificate /etc/letsencrypt/live/stg.bhismaroi.site/fullchain.pem;
+ #   ssl_certificate_key /etc/letsencrypt/live/stg.bhismaroi.site/privkey.pem;
 #
   #  location / {
 #        proxy_pass http://stg_servers; # Use a named upstream for load balancing
