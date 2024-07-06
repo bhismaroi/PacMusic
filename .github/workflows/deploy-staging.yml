@@ -57,13 +57,13 @@ jobs:
             cat .env
 
             # Start the application
-            sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
+            sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2
           EOF
 
       - name: Test Hit Endpoint 1
         run: |
           sleep 15
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl https://stg.bhismaroi.site" # Assuming stg.bhismaroi.site is your staging domain
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_NAME_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "curl https://stg.bhismaroi.site"
 
 # Test Hit Endpoint 2 (Not necessary since Nginx is the entrypoint)
 
