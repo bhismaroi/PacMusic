@@ -57,7 +57,7 @@ jobs:
             cat .env
 
             # Start the application
-            sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2
+            sudo docker compose up --build --detach pacmusic-stg-1 pacmusic-stg-2 || true
           EOF
 
       - name: Test Hit Endpoint 1
